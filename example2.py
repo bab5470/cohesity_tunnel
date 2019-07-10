@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import lib_tunnel
+import libtunnel
 import time
 import sys
 import os
@@ -8,7 +8,7 @@ import paramiko
 
 privatekeyfile = os.path.expanduser('~/.ssh/id_rsa')
 
-(tunnel, local_port) = lib_tunnel.open_tunnel(778490219292362)
+(tunnel, local_port) = libtunnel.open_tunnel(778490219292362)
 client = paramiko.SSHClient()
 client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 try:
@@ -22,5 +22,5 @@ for line in stdout:
     print(line)
 
 client.close()
-lib_tunnel.close_tunnel(tunnel)
+libtunnel.close_tunnel(tunnel)
 sys.exit()
