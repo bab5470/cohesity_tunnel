@@ -6,21 +6,27 @@ import socket
 import os
 
 pkey = os.path.expanduser('~/.ssh/id_rsa')
+rt_server = 'rt.cohesity.com'
+rt_port = 22
+rt_username = 'cohesity'
+cluster_username = 'cohesity'
+cluster_password = 'Cohe$1ty'
+local_ip = '127.0.0.1'
 
 def _create_tunnel(port):
     server = sshtunnel.SSHTunnelForwarder(
-        ('rt.cohesity.com', 22),
-        ssh_username="cohesity",
+        (rt_server, rt_port),
+        ssh_username=rt_username,
         ssh_pkey=pkey,
-        remote_bind_address=('rt.cohesity.com', port),
-        local_bind_address=('127.0.0.1', port))
+        remote_bind_address=(rt_server, port),
+        local_bind_address=(local_ip, port))
     
     return server
 
 def _check_port(port_num):
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    result = sock.connect_ex(('127.0.0.1', port_num))
+    result = sock.connect_ex((local_ip, port_num))
     sock.close()
 
     return result
@@ -30,10 +36,10 @@ def _get_cluster_details(cluster_id):
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     try:
-        client.connect('rt.cohesity.com', username='cohesity', key_filename=pkey)
+        client.connect(rt_server, username=rt_username, key_filename=pkey)
     except paramiko.ssh_exception.SSHException:
         os.system("/usr/bin/ssh-keygen -N '' -p -m PEM -f {}".format(pkey))
-        client.connect('rt.cohesity.com', username='cohesity', key_filename=pkey)
+        client.connect(rt_server, username=rt_username, key_filename=pkey)
     _, stdout, _ = client.exec_command("tf {}".format(cluster_id))
 
     output = stdout.read().decode('utf-8')
@@ -79,7 +85,7 @@ def cluster_run(cluster_id, cmd):
         client = paramiko.SSHClient()
         client.load_system_host_keys()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        client.connect('127.0.0.1', local_port, username='cohesity', password='Cohe$1ty')
+        client.connect(local_ip, local_port, username=cluster_username, password=cluster_password)
         _, stdout, _ = client.exec_command("{} 2>&1".format(cmd))
         output = stdout.read().decode('utf-8')
         client.close()
